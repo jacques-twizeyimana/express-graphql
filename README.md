@@ -1,2 +1,2 @@
-#Express Graphql
+# Express Graphql
 Simple Express and GraphQL server
