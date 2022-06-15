@@ -1,7 +1,22 @@
 //graphql schema
 
 const { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLList, GraphQLInt, GraphQLNonNull } = require('graphql');
-const { books } = require("../static/data");
+const { books, authors } = require("../static/data");
+
+const AuthorType = new GraphQLObjectType({
+  name: "Author",
+  description: "Author of the book",
+  fields: () => ({
+    id: { type: GraphQLInt },
+    name: { type: GraphQLString },
+    books: {
+      type: new GraphQLList(BookType),
+      resolve(parent, args) {
+        return books.filter((book) => book.authorId === parent.id);
+      },
+    },
+  }),
+});
 
 const BookType = new GraphQLObjectType({
   name: "Book",
@@ -19,6 +34,13 @@ const BookType = new GraphQLObjectType({
       type: new GraphQLNonNull(GraphQLInt),
       description: "The id of the author of the book",
     },
+    author: {
+      type: AuthorType,
+      description: "The author of the book",
+      resolve: (book) => {
+        return authors.find((author) => author.id === book.authorId);
+      },
+    },
   }),
 });
 
@@ -31,18 +53,24 @@ const RootQuery = new GraphQLObjectType({
       description: "List of books",
       resolve: () => books,
     },
-    // book: {
-    //   type: BookType,
-    //   description: "A single book",
-    //   args: {
-    //     id: {
-    //       type: GraphQLString,
-    //     },
-    //   },
-    //   resolve(parent, args) {
-    //     return books.find((book) => book.id == args.id);
-    //   },
-    // },
+    authors: {
+      type: new GraphQLList(AuthorType),
+      description: "List of authors",
+      resolve: () => authors,
+    },
+
+    book: {
+      type: BookType,
+      description: "A single book",
+      args: {
+        id: {
+          type: GraphQLInt,
+        },
+      },
+      resolve(parent, args) {
+        return books.find((book) => book.id === args.id);
+      },
+    },
   }),
 });
 
